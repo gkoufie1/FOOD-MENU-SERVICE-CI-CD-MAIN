@@ -30,6 +30,11 @@
       display: flex;
       justify-content: space-between;
     }
+    .error {
+      color: #c0392b;
+      text-align: center;
+      padding: 1rem;
+    }
     footer {
       text-align: center;
       margin-top: 2rem;
@@ -54,25 +59,44 @@
 
 <script>
   async function loadMenu() {
-    const res = await fetch("/api/menu");
-    const data = await res.json();
-
     const menuDiv = document.getElementById("menu");
-    menuDiv.innerHTML = "";
+    try {
+      const res = await fetch("/api/menu");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
 
-    data.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "menu-item";
-      div.innerHTML = `<strong>${item.name}</strong><span>₹${item.price}</span>`;
-      menuDiv.appendChild(div);
-    });
+      menuDiv.innerHTML = "";
+      data.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "menu-item";
+
+        const name = document.createElement("strong");
+        name.textContent = item.name;
+
+        const price = document.createElement("span");
+        price.textContent = `₹${item.price}`;
+
+        div.appendChild(name);
+        div.appendChild(price);
+        menuDiv.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Failed to load menu:", err);
+      menuDiv.innerHTML = `<p class="error">Failed to load menu. Please try again.</p>`;
+    }
   }
 
   async function loadVersion() {
-    const res = await fetch("/version");
-    const data = await res.json();
-    document.getElementById("version").innerText =
-      `Version: ${data.version}`;
+    const versionEl = document.getElementById("version");
+    try {
+      const res = await fetch("/version");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      versionEl.textContent = `Version: ${data.version}`;
+    } catch (err) {
+      console.error("Failed to load version:", err);
+      versionEl.textContent = "Version unavailable";
+    }
   }
 
   loadMenu();
